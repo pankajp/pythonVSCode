@@ -1,6 +1,6 @@
 "use strict";
 
-import {Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles} from "vscode-debugadapter";
+import {Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles, Module, ModuleEvent} from "vscode-debugadapter";
 import {ThreadEvent} from "vscode-debugadapter";
 import {DebugProtocol} from "vscode-debugprotocol";
 import {readFileSync} from "fs";

@@ -1753,7 +1753,6 @@ class DebuggerLoop(object):
     def command_get_completion(self):
         req_id = read_int(self.conn)
         expr = read_string(self.conn)
-
         with _SendLockCtx:
             write_bytes(conn, COMP)
             write_int(conn, req_id)
