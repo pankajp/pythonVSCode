@@ -349,6 +349,7 @@ CHLD = to_bytes('CHLD')
 OUTP = to_bytes('OUTP')
 REQH = to_bytes('REQH')
 LAST = to_bytes('LAST')
+COMP = to_bytes('COMP')
 
 def get_thread_from_id(id):
     THREADS_LOCK.acquire()
@@ -1635,6 +1636,7 @@ class DebuggerLoop(object):
             to_bytes('crep') : self.command_connect_repl,
             to_bytes('drep') : self.command_disconnect_repl,
             to_bytes('lack') : self.command_last_ack,
+            to_bytes('comp') : self.command_get_completion,
         }
 
     def loop(self):
@@ -1747,6 +1749,15 @@ class DebuggerLoop(object):
             write_bytes(conn, BKHC)
             write_int(conn, req_id)
             write_int(conn, count)
+
+    def command_get_completion(self):
+        req_id = read_int(self.conn)
+        expr = read_string(self.conn)
+
+        with _SendLockCtx:
+            write_bytes(conn, COMP)
+            write_int(conn, req_id)
+            write_string(conn, 'resolved = ' + expr)
 
     def command_remove_breakpoint(self):
         line_no = read_int(self.conn)

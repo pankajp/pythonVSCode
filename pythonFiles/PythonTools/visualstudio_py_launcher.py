@@ -80,6 +80,10 @@ vspd.DONT_DEBUG.append(os.path.normcase(__file__))
 ## Begin modification by Don Jayamanne
 # Get current Process id to pass back to debugger
 currentPid = os.getpid()
+
+if 'EnableCompletions' in debug_options:
+    sys.path.append('../')
+    import jedi
 ## End Modification by Don Jayamanne
 
 # remove all state we imported

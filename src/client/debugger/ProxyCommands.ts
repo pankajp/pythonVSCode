@@ -28,4 +28,5 @@ export class Commands {
     public static ConnectReplCommandBytes: Buffer = new Buffer("crep");
     public static DisconnectReplCommandBytes: Buffer = new Buffer("drep");
     public static LastAckCommandBytes: Buffer = new Buffer("lack");
+    public static GetCompletions: Buffer = new Buffer("comp");
 }

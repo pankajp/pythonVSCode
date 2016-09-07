@@ -200,6 +200,11 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         this.stream.Write(command);
         this.stream.WriteInt64(threadId);
     }
+    public getCompletion(threadId: number, expr: string) {
+        this.stream.Write(Commands.GetCompletions);
+        this.stream.WriteInt64(threadId);
+        this.stream.WriteString(expr);
+    }
 
     public SendExceptionInfo(defaultBreakOnMode: enum_EXCEPTION_STATE, breakOn: Map<string, enum_EXCEPTION_STATE>) {
         this.stream.Write(Commands.SetExceptionInfoCommandBytes);
