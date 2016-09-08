@@ -650,11 +650,14 @@ export class PythonDebugger extends DebugSession {
             });
         }).catch(error => this.sendErrorResponse(response, 2000, error));
     }
+<<<<<<< d634e6fb224ff066ebc9b30830d5b8dca98e2929
     // protected stepInTargetsRequest(response: DebugProtocol.StepInTargetsResponse, args: DebugProtocol.StepInTargetsArguments): void;
     // protected gotoTargetsRequest(response: DebugProtocol.GotoTargetsResponse, args: DebugProtocol.GotoTargetsArguments): void;
     protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments) {
         this.pythonProcess.getCompletion(args.frameId, args.text);
     }
+=======
+>>>>>>> fixed bug in debugger
 }
 
 DebugSession.run(PythonDebugger);
