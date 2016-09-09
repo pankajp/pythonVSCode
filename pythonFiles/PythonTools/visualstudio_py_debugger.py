@@ -1238,14 +1238,17 @@ class Thread(object):
         self.unblock_work = work
         self.unblock()
 
-    def run_on_thread(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL):
+    def run_on_thread(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL, mode='eval'):
         self._block_starting_lock.acquire()
         
         if not self._is_blocked:
+            print('blocked')
             report_execution_error('<expression cannot be evaluated at this time>', execution_id)
         elif not self._is_working:
-            self.schedule_work(lambda : self.run_locally(text, cur_frame, execution_id, frame_kind, repr_kind))
+            print('schedule')
+            self.schedule_work(lambda : self.run_locally(text, cur_frame, execution_id, frame_kind, repr_kind, mode))
         else:
+            print('previous eval')
             report_execution_error('<error: previous evaluation has not completed>', execution_id)
         
         self._block_starting_lock.release()
@@ -1293,22 +1296,26 @@ class Thread(object):
         except:
             pass
 
-    def compile(self, text, cur_frame):
+    def compile(self, text, cur_frame, mode = 'eval'):
         try:
-            code = compile(text, '<debug input>', 'eval')
+            code = compile(text, '<debug input>', mode)
         except:
             code = compile(text, '<debug input>', 'exec')
         return code
 
-    def run_locally(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL):
+    def run_locally(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL, mode = 'eval'):
+        print('run locally')
         try:
-            code = self.compile(text, cur_frame)
+            code = self.compile(text, cur_frame, mode)
             res = eval(code, cur_frame.f_globals, self.get_locals(cur_frame, frame_kind))
+            print('run locally evaluated')
             self.locals_to_fast(cur_frame)
             # Report any updated variable values first
             self.enum_thread_frames_locally()
+            print('run locally before send result')
             report_execution_result(execution_id, res, repr_kind)
         except:
+            print('error run locally')
             # Report any updated variable values first
             self.enum_thread_frames_locally()
             report_execution_exception(execution_id, sys.exc_info())
@@ -1753,6 +1760,7 @@ class DebuggerLoop(object):
     def command_get_completion(self):
         # req_id = read_int(self.conn)
         # expr = read_string(self.conn)
+        print('test')
         try:
             # execute given text in specified frame
             text = read_string(self.conn)
@@ -1761,12 +1769,16 @@ class DebuggerLoop(object):
             eid = read_int(self.conn) # execution id
             frame_kind = read_int(self.conn)
             repr_kind = read_int(self.conn)
-            script = "jedi.Interpreter('" + text + "', [locals()]).completions()"
+            script = "import jedi\njedi.Interpreter('" + text + "', [locals()]).completions()"
+            script = "a"
+            print('ok sofar')
 
             thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
             if thread is not None and cur_frame is not None:
-                thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind)
+                print('time to evaluate')
+                thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind, 'eval')
         except expression as identifier:
+            print('error')
             with _SendLockCtx:
                 write_bytes(conn, COMP)
                 write_int(conn, req_id)

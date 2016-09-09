@@ -82,10 +82,13 @@ vspd.DONT_DEBUG.append(os.path.normcase(__file__))
 currentPid = os.getpid()
 
 if 'EnableCompletions' in debug_options:
-    sys.path.append('../')
+    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
     import jedi
-sys.path.append('../')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 import jedi
+# sys.path.append('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/pythonFiles')
+#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+#import jedi
 ## End Modification by Don Jayamanne
 
 # remove all state we imported
