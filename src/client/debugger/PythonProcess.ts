@@ -212,7 +212,8 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
                 Text: expr,
                 Frame: stackFrame,
                 PromiseResolve: resolve,
-                PromiseReject: reject
+                PromiseReject: reject,
+                ReprKind:PythonEvaluationResultReprKind.Normal
             };
             this.PendingExecuteCommands.set(executeId, cmd);
             this.stream.Write(Commands.GetCompletions);
