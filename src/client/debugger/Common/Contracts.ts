@@ -192,6 +192,7 @@ export interface IExecutionCommand {
     PromiseResolve: (value: IPythonEvaluationResult) => void;
     PromiseReject: (error: string) => void;
     ReprKind: PythonEvaluationResultReprKind;
+    Command: Buffer;
 }
 // Must be in sync with BREAKPOINT_CONDITION_* constants in visualstudio_py_debugger.py.
 export enum PythonBreakpointConditionKind {

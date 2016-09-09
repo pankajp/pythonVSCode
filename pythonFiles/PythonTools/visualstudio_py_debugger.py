@@ -1242,13 +1242,10 @@ class Thread(object):
         self._block_starting_lock.acquire()
         
         if not self._is_blocked:
-            print('blocked')
             report_execution_error('<expression cannot be evaluated at this time>', execution_id)
         elif not self._is_working:
-            print('schedule')
             self.schedule_work(lambda : self.run_locally(text, cur_frame, execution_id, frame_kind, repr_kind, mode))
         else:
-            print('previous eval')
             report_execution_error('<error: previous evaluation has not completed>', execution_id)
         
         self._block_starting_lock.release()
@@ -1304,32 +1301,19 @@ class Thread(object):
         return code
 
     def run_locally(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL, mode = 'eval'):
-        print('run locally')
-        print(mode)
         try:
-            # if mode == "exec":
-            #     text = "import jedi\nimport sys\nprint(sys.version)"
             code = self.compile(text, cur_frame, mode)
             if mode == "exec":            
                 lc = self.get_locals(cur_frame, frame_kind)
                 res = eval(code, cur_frame.f_globals, lc)
-                print(res)
                 res = lc['__COMPLETIONS__']
-                print(res)
             else:
                 res = eval(code, cur_frame.f_globals, self.get_locals(cur_frame, frame_kind))
-            if mode == "exec":
-                print('Response')
-                print(res)
-                print('Response')
-            print('run locally evaluated')
             self.locals_to_fast(cur_frame)
             # Report any updated variable values first
             self.enum_thread_frames_locally()
-            print('run locally before send result')
             report_execution_result(execution_id, res, repr_kind)
         except:
-            print('error run locally')
             # Report any updated variable values first
             self.enum_thread_frames_locally()
             report_execution_exception(execution_id, sys.exc_info())
@@ -1774,7 +1758,6 @@ class DebuggerLoop(object):
     def command_get_completion(self):
         # req_id = read_int(self.conn)
         # expr = read_string(self.conn)
-        print('test')
         try:
             # execute given text in specified frame
             text = read_string(self.conn)
@@ -1783,17 +1766,12 @@ class DebuggerLoop(object):
             eid = read_int(self.conn) # execution id
             frame_kind = read_int(self.conn)
             repr_kind = read_int(self.conn)
-            script = "\n" +  "import jedi\nimport json\n" + "_completions = []\n" +  "__COMPLETIONS__ = jedi.Interpreter('" + text + "', [locals()]).completions()\n" + "for completion in __COMPLETIONS__:\n" + "    description = completion.docstring()\n" + "    _completion = {\n" + "        'text': completion.name,\n" + "        'description': description\n" + "    }\n" + "    if any([c['text'].split('=')[0] == _completion['text']\n" + "            for c in _completions]):\n" + "        # ignore function arguments we already have\n" + "        continue\n" + "    _completions.append(_completion)\n" + "__COMPLETIONS__ = json.dumps({'results': _completions})"
-
-            #script = "a"
-            print('ok sofar')
+            script = "\n" +  "import jedi\n" + "_completions = ''\n" +  "__COMPLETIONS__ = jedi.Interpreter('" + text + "', [locals()]).completions()\n" + "for completion in __COMPLETIONS__:\n" + "    _completions = _completions + ',' + completion.name\n" + "__COMPLETIONS__ = _completions"
 
             thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
             if thread is not None and cur_frame is not None:
-                print('time to evaluate')
                 thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind, 'exec')
         except expression as identifier:
-            print('error')
             with _SendLockCtx:
                 write_bytes(conn, COMP)
                 write_int(conn, req_id)

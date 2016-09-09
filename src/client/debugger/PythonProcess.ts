@@ -204,7 +204,6 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         // this.stream.Write(Commands.GetCompletions);
         // this.stream.WriteInt64(threadId);
         // this.stream.WriteString(expr);
-
         return new Promise<IPythonEvaluationResult>((resolve, reject) => {
             let executeId = this._idDispenser.Allocate();
             let cmd: IExecutionCommand = {
@@ -213,16 +212,11 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
                 Frame: stackFrame,
                 PromiseResolve: resolve,
                 PromiseReject: reject,
-                ReprKind:PythonEvaluationResultReprKind.Normal
+                ReprKind: PythonEvaluationResultReprKind.Normal,
+                Command: Commands.GetCompletions
             };
-            this.PendingExecuteCommands.set(executeId, cmd);
-            this.stream.Write(Commands.GetCompletions);
-            this.stream.WriteString(expr);
-            this.stream.WriteInt64(stackFrame.Thread.Id);
-            this.stream.WriteInt32(stackFrame.FrameId);
-            this.stream.WriteInt32(executeId);
-            this.stream.WriteInt32(<number>stackFrame.Kind);
-            this.stream.WriteInt32(<number>PythonEvaluationResultReprKind.Normal);
+            this.executeCommandsQueue.push(cmd);
+            this.ProcessPendingExecuteCommands();
         });
     }
 
@@ -350,7 +344,8 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
                 Frame: stackFrame,
                 PromiseResolve: resolve,
                 PromiseReject: reject,
-                ReprKind: reprKind
+                ReprKind: reprKind,
+                Command: Commands.ExecuteTextCommandBytes
             };
             this.executeCommandsQueue.push(cmd);
             this.ProcessPendingExecuteCommands();
@@ -364,7 +359,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
 
         const cmd = this.executeCommandsQueue.shift();
         this.PendingExecuteCommands.set(cmd.Id, cmd);
-        this.stream.Write(Commands.ExecuteTextCommandBytes);
+        this.stream.Write(cmd.Command);
         this.stream.WriteString(cmd.Text);
         this.stream.WriteInt64(cmd.Frame.Thread.Id);
         this.stream.WriteInt32(cmd.Frame.FrameId);

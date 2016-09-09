@@ -661,7 +661,21 @@ export class PythonDebugger extends DebugSession {
                 };
                 return this.sendResponse(response);
             }
-            this.pythonProcess.getCompletion(frame, args.text);
+            this.pythonProcess.getCompletion(frame, args.text).then(result => {
+                if (result.StringRepr.length > 0) {
+                    const list = result.StringRepr.substring(1, result.StringRepr.length - 2);
+                    let values = list.split(',').filter(value => value.length > 0);
+                    response.body = {
+                        targets: values.map(item => <DebugProtocol.CompletionItem>{ label: item })
+                    };
+                    return this.sendResponse(response);
+                }
+            }).catch(() => {
+                response.body = {
+                    targets: []
+                };
+                return this.sendResponse(response);
+            });
             // this.pythonProcess.ExecuteText(args.text, PythonEvaluationResultReprKind.Normal, frame).then(result => {
             //     let variablesReference = 0;
             //     // If this value can be expanded, then create a vars ref for user to expand it
