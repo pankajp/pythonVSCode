@@ -17,7 +17,7 @@ An extension with rich support for the [Python language](https://www.python.org/
 * Install the extension
 * If Python is in the current path
   + You're ready to use it.
-* If using a custom Python Version or a Virtual Environment, use the command [```Select Workspace Interpreter```](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#select-an-interpreter)) 
+* If using a custom Python Version or a Virtual Environment, use the command [```Select Workspace Interpreter```](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#select-an-interpreter))
 
 ## [Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
 For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
