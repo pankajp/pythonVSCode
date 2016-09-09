@@ -1768,14 +1768,14 @@ class DebuggerLoop(object):
             repr_kind = read_int(self.conn)
             script = "\n" +  "import jedi\n" + "_completions = ''\n" +  "__COMPLETIONS__ = jedi.Interpreter('" + text + "', [locals()]).completions()\n" + "for completion in __COMPLETIONS__:\n" + "    _completions = _completions + ',' + completion.name\n" + "__COMPLETIONS__ = _completions"
 
-            thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
-            if thread is not None and cur_frame is not None:
-                thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind, 'exec')
+            try:
+                thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
+                if thread is not None and cur_frame is not None:
+                    thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind, 'exec')
+            except expression as identifier:
+                report_execution_error('Failed to retrieve completion list', eid)
         except expression as identifier:
-            with _SendLockCtx:
-                write_bytes(conn, COMP)
-                write_int(conn, req_id)
-                write_string(conn, '')
+            pass
 
     def command_remove_breakpoint(self):
         line_no = read_int(self.conn)
