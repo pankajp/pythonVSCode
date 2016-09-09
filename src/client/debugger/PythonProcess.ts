@@ -200,10 +200,29 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         this.stream.Write(command);
         this.stream.WriteInt64(threadId);
     }
-    public getCompletion(threadId: number, expr: string) {
-        this.stream.Write(Commands.GetCompletions);
-        this.stream.WriteInt64(threadId);
-        this.stream.WriteString(expr);
+    public getCompletion(stackFrame: IPythonStackFrame, expr: string) {
+        // this.stream.Write(Commands.GetCompletions);
+        // this.stream.WriteInt64(threadId);
+        // this.stream.WriteString(expr);
+
+        return new Promise<IPythonEvaluationResult>((resolve, reject) => {
+            let executeId = this._idDispenser.Allocate();
+            let cmd: IExecutionCommand = {
+                Id: executeId,
+                Text: expr,
+                Frame: stackFrame,
+                PromiseResolve: resolve,
+                PromiseReject: reject
+            };
+            this.PendingExecuteCommands.set(executeId, cmd);
+            this.stream.Write(Commands.GetCompletions);
+            this.stream.WriteString(expr);
+            this.stream.WriteInt64(stackFrame.Thread.Id);
+            this.stream.WriteInt32(stackFrame.FrameId);
+            this.stream.WriteInt32(executeId);
+            this.stream.WriteInt32(<number>stackFrame.Kind);
+            this.stream.WriteInt32(<number>PythonEvaluationResultReprKind.Normal);
+        });
     }
 
     public SendExceptionInfo(defaultBreakOnMode: enum_EXCEPTION_STATE, breakOn: Map<string, enum_EXCEPTION_STATE>) {

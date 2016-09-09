@@ -84,6 +84,8 @@ currentPid = os.getpid()
 if 'EnableCompletions' in debug_options:
     sys.path.append('../')
     import jedi
+sys.path.append('../')
+import jedi
 ## End Modification by Don Jayamanne
 
 # remove all state we imported

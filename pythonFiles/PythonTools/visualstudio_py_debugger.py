@@ -1751,15 +1751,21 @@ class DebuggerLoop(object):
             write_int(conn, count)
 
     def command_get_completion(self):
-        req_id = read_int(self.conn)
-        expr = read_string(self.conn)
+        # req_id = read_int(self.conn)
+        # expr = read_string(self.conn)
         try:
-            namespace = locals()
-            script = Interpreter('join("").up', [namespace])
-            with _SendLockCtx:
-                write_bytes(conn, COMP)
-                write_int(conn, req_id)
-                write_string(conn, '')
+            # execute given text in specified frame
+            text = read_string(self.conn)
+            tid = read_int(self.conn) # thread id
+            fid = read_int(self.conn) # frame id
+            eid = read_int(self.conn) # execution id
+            frame_kind = read_int(self.conn)
+            repr_kind = read_int(self.conn)
+            script = "jedi.Interpreter('" + text + "', [locals()]).completions()"
+
+            thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
+            if thread is not None and cur_frame is not None:
+                thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind)
         except expression as identifier:
             with _SendLockCtx:
                 write_bytes(conn, COMP)

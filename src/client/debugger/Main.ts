@@ -375,7 +375,7 @@ export class PythonDebugger extends DebugSession {
                 // get the part of the path that is relative to the source root
                 pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath).trim();
             }
-            if (pathRelativeToSourceRoot.startsWith(path.sep)){
+            if (pathRelativeToSourceRoot.startsWith(path.sep)) {
                 pathRelativeToSourceRoot = pathRelativeToSourceRoot.substring(1);
             }
             // resolve from the local source root
@@ -653,7 +653,33 @@ export class PythonDebugger extends DebugSession {
     // protected stepInTargetsRequest(response: DebugProtocol.StepInTargetsResponse, args: DebugProtocol.StepInTargetsArguments): void;
     // protected gotoTargetsRequest(response: DebugProtocol.GotoTargetsResponse, args: DebugProtocol.GotoTargetsArguments): void;
     protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments) {
-        this.pythonProcess.getCompletion(args.frameId, args.text);
+        this.debuggerLoaded.then(() => {
+            let frame = this._pythonStackFrames.get(args.frameId);
+            if (!frame) {
+                response.body = {
+                    targets: []
+                };
+                return this.sendResponse(response);
+            }
+            this.pythonProcess.getCompletion(frame, args.text);
+            // this.pythonProcess.ExecuteText(args.text, PythonEvaluationResultReprKind.Normal, frame).then(result => {
+            //     let variablesReference = 0;
+            //     // If this value can be expanded, then create a vars ref for user to expand it
+            //     if (result.IsExpandable) {
+            //         const parentVariable: IDebugVariable = {
+            //             variables: [result],
+            //             evaluateChildren: true
+            //         };
+            //         variablesReference = this._variableHandles.create(parentVariable);
+            //     }
+
+            //     response.body = {
+            //         targets: []
+            //     };
+            //     this.sendResponse(response);
+            // }).catch(error => this.sendErrorResponse(response, 2000, error));
+        });
+
     }
 }
 
