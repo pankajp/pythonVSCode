@@ -1303,10 +1303,14 @@ class Thread(object):
     def run_locally(self, text, cur_frame, execution_id, frame_kind, repr_kind = PYTHON_EVALUATION_RESULT_REPR_KIND_NORMAL, mode = 'eval'):
         try:
             code = self.compile(text, cur_frame, mode)
-            if mode == "exec":            
+            if mode == "exec":
+                print('about to exec')            
                 lc = self.get_locals(cur_frame, frame_kind)
                 res = eval(code, cur_frame.f_globals, lc)
+                print('done')            
+                print(res)            
                 res = lc['__COMPLETIONS__']
+                print(res)            
             else:
                 res = eval(code, cur_frame.f_globals, self.get_locals(cur_frame, frame_kind))
             self.locals_to_fast(cur_frame)
@@ -1314,6 +1318,7 @@ class Thread(object):
             self.enum_thread_frames_locally()
             report_execution_result(execution_id, res, repr_kind)
         except:
+            print('oops')            
             # Report any updated variable values first
             self.enum_thread_frames_locally()
             report_execution_exception(execution_id, sys.exc_info())
@@ -1614,6 +1619,7 @@ class DebuggerLoop(object):
     def __init__(self, conn):
         DebuggerLoop.instance = self
         self.conn = conn
+        self.completionTemplateCode = ''
         self.repl_backend = None
         self.command_table = {
             to_bytes('stpi') : self.command_step_into,
@@ -1766,13 +1772,23 @@ class DebuggerLoop(object):
             eid = read_int(self.conn) # execution id
             frame_kind = read_int(self.conn)
             repr_kind = read_int(self.conn)
+            print('before')
             script = "\n" +  "import jedi\n" + "_completions = ''\n" +  "__COMPLETIONS__ = jedi.Interpreter('" + text + "', [locals()]).completions()\n" + "for completion in __COMPLETIONS__:\n" + "    _completions = _completions + ',' + completion.name\n" + "__COMPLETIONS__ = _completions"
-
+            print('opening')
+            if self.completionTemplateCode.__len__() == 0:            
+                with open(path.join(path.dirname(path.abspath(__file__)), 'completionHelper.py'), 'r') as completionFile:
+                    print('opened')
+                    self.completionTemplateCode = completionFile.read() 
+            script = self.completionTemplateCode.replace('$text', text)
+            print('replaced')
+            print(text)
+            print(script)
             try:
                 thread, cur_frame = self.get_thread_and_frame(tid, fid, frame_kind)
                 if thread is not None and cur_frame is not None:
                     thread.run_on_thread(script, cur_frame, eid, frame_kind, repr_kind, 'exec')
             except expression as identifier:
+                print('oops')
                 report_execution_error('Failed to retrieve completion list', eid)
         except expression as identifier:
             pass
