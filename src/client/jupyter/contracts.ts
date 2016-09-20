@@ -204,3 +204,7 @@ export interface JupyterMessage {
     };
 }
 
+export interface Cell {
+    range: vscode.Range;
+    title: string;
+}
